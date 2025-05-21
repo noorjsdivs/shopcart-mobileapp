@@ -62,6 +62,7 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
       set({ selectedCategory: category, loading: true, error: null });
 
       if (category) {
+        set({ loading: true, error: null });
         const products = await getProductsByCategory(category);
         set({ filteredProducts: products, loading: false });
       } else {
@@ -122,15 +123,22 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
     try {
       set({ loading: true, error: null });
 
-      if (!query.trim()) {
-        // If query is empty, reset to all products
-        set({ filteredProducts: get().products, loading: false });
-        return;
-      }
+      // if (!query.trim()) {
+      //   // If query is empty, reset to all products
+      //   set({ filteredProducts: get().products, loading: false });
+      //   return;
+      // }
 
       // Call the API to search products
-      const searchResults = await searchProductsApi(query);
-      set({ filteredProducts: searchResults, loading: false });
+      console.log(query.length);
+
+      if (query?.length >= 3) {
+        const searchResults = await searchProductsApi(query);
+        console.log(searchResults?.length);
+        set({ filteredProducts: searchResults, loading: false });
+      } else {
+        set({ filteredProducts: [], loading: false });
+      }
     } catch (error: any) {
       set({ error: error.message, loading: false });
     }

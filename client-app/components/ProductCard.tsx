@@ -14,6 +14,10 @@ import AppColors from "@/constants/Colors";
 import Button from "./Button";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import Rating from "./Rating";
+import { useCartStore } from "@/store/cartStore";
+import { useFavoritesStore } from "@/store/favoriteStore";
+import { AntDesign } from "@expo/vector-icons";
 
 interface ProductCardProps {
   product: Product;
@@ -25,19 +29,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
   compact = false,
   customStyle,
 }) => {
-  const { id, title, price, image, category } = product;
+  const { id, title, price, image, category, rating } = product;
   const router = useRouter();
   const handleProductRoute = () => {
     router.push(`/product/${id}`);
   };
+  const { addItem } = useCartStore();
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const isFav = isFavorite(id);
 
   const handleAddToCart = () => {
+    addItem(product, 1);
     Toast.show({
       type: "success",
       text1: "Product added to cart",
       text2: `${title} has been added to your cart`,
       visibilityTime: 2000,
     });
+  };
+  const handleToggleFavorite = () => {
+    toggleFavorite(product);
   };
 
   return (
@@ -52,6 +63,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
           style={styles.image}
           resizeMode="contain"
         />
+        <TouchableOpacity
+          onPress={handleToggleFavorite}
+          style={[styles.favoriteButton, { borderWidth: isFav ? 1 : 0 }]}
+        >
+          <AntDesign
+            name="hearto"
+            size={18}
+            color={isFav ? AppColors.error : AppColors.gray[400]}
+          />
+        </TouchableOpacity>
       </View>
       <View style={styles.content}>
         <Text style={styles.category}>{category}</Text>
@@ -67,6 +88,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <Text style={[styles.price, !compact && { marginBottom: 7 }]}>
             ${price.toFixed(2)}
           </Text>
+
+          <View style={!compact && { marginBottom: 7 }}>
+            <Rating size={12} rating={rating?.rate} count={rating?.count} />
+          </View>
+
           {!compact && (
             <Button
               onPress={handleAddToCart}
@@ -122,7 +148,7 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: "center",
     justifyContent: "center",
-    borderColor: AppColors.warning,
+    borderColor: AppColors.error,
   },
   content: {
     padding: 12,
@@ -142,6 +168,11 @@ const styles = StyleSheet.create({
   },
   footer: {
     justifyContent: "space-between",
+  },
+  ratingText: {
+    textTransform: "capitalize",
+    color: AppColors.gray[600],
+    fontSize: 12,
   },
   price: {
     fontSize: 16,

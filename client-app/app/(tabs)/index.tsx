@@ -44,12 +44,12 @@ export default function HomeScreen() {
     router.push({
       pathname: "/(tabs)/shop",
       params: {
-        category: category,
+        category,
       },
     });
   };
 
-  if (!loading) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>

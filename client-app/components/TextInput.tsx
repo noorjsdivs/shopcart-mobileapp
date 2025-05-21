@@ -1,15 +1,15 @@
+import AppColors from "@/constants/Colors";
+import React from "react";
 import {
   KeyboardTypeOptions,
+  TextInput as RNTextInput,
   StyleProp,
   StyleSheet,
   Text,
   TextStyle,
   View,
   ViewStyle,
-  TextInput as RNTextInput,
 } from "react-native";
-import React from "react";
-import AppColors from "@/constants/Colors";
 
 interface TextInputProps {
   value: string;
@@ -47,6 +47,7 @@ const TextInput: React.FC<TextInputProps> = ({
   return (
     <View style={[styles.container, style]}>
       {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
+
       <RNTextInput
         value={value}
         onChangeText={onChangeText}
@@ -56,20 +57,20 @@ const TextInput: React.FC<TextInputProps> = ({
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
         multiline={multiline}
-        numberOfLines={numberOfLines}
+        numberOfLines={multiline ? numberOfLines : 1}
         style={[
           styles.input,
-          inputStyle,
           multiline && styles.multilineInput,
           error && styles.inputError,
+          inputStyle,
         ]}
+        placeholderTextColor={AppColors.gray[400]}
       />
+
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };
-
-export default TextInput;
 
 const styles = StyleSheet.create({
   container: {
@@ -105,3 +106,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+
+export default TextInput;

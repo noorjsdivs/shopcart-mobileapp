@@ -1,21 +1,16 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
 import AppColors from "@/constants/Colors";
-import {
-  AntDesign,
-  Feather,
-  Foundation,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Platform } from "react-native";
 
 interface Props {
   isFav?: boolean;
-  showCart?: boolean;
   handleToggleFavorite?: () => void;
 }
 
-const CommonHeader = ({ isFav, showCart, handleToggleFavorite }: Props) => {
+const CommonHeader = ({ isFav, handleToggleFavorite }: Props) => {
   const router = useRouter();
   const handleGoBack = () => {
     if (router.canGoBack()) {
@@ -31,6 +26,7 @@ const CommonHeader = ({ isFav, showCart, handleToggleFavorite }: Props) => {
       </TouchableOpacity>
       <View style={styles.buttonView}>
         <TouchableOpacity
+          onPress={handleToggleFavorite}
           style={[styles.favoriteButton, isFav && styles.activeFavoriteButton]}
         >
           <AntDesign
@@ -44,14 +40,12 @@ const CommonHeader = ({ isFav, showCart, handleToggleFavorite }: Props) => {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/cart")}
-          style={[styles.favoriteButton, isFav && styles.activeFavoriteButton]}
+          style={styles.favoriteButton}
         >
           <MaterialCommunityIcons
             name="cart-outline"
             size={24}
-            color={
-              isFav ? AppColors.background.primary : AppColors.text.primary
-            }
+            color={AppColors.text.primary}
             fill={isFav ? AppColors.background.primary : "transparent"}
           />
         </TouchableOpacity>
@@ -69,6 +63,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     zIndex: 10,
+    marginTop: Platform.OS === "android" ? 35 : 0,
   },
   backButton: {
     width: 40,
