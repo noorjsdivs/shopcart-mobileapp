@@ -15,6 +15,9 @@ import AppColors from "@/constants/Colors";
 import { Title } from "@/components/customText";
 import CartItem from "@/components/CartItem";
 import Button from "@/components/Button";
+import Toast from "react-native-toast-message";
+import { supabase } from "@/lib/supabase";
+import axios from "axios";
 
 const CartScreen = () => {
   const router = useRouter();
@@ -26,7 +29,91 @@ const CartScreen = () => {
   const shippingCost = subtotal > 50 ? 5.99 : 0;
   const total = subtotal + shippingCost;
 
-  const handlePlaceOrder = async () => {};
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      Toast.show({
+        type: "error",
+        text1: "Login Required",
+        text2: "Please login to place an order",
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+      return;
+    }
+    try {
+      setLoading(true);
+      const orderData = {
+        user_email: user.email,
+        total_price: total,
+        items: items.map((item) => ({
+          product_id: item.product.id,
+          title: item.product.title,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.image,
+        })),
+        payment_status: "pending",
+      };
+      // Insert order into Supabase
+      const { data, error } = await supabase
+        .from("orders")
+        .insert([orderData])
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to save order: ${error.message}`);
+      }
+      const payload = {
+        price: total,
+        email: user?.email,
+      };
+      const response = await axios.post(
+        "http://localhost:8000/checkout",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const { paymentIntent, ephemeralKey, customer } = response.data;
+      if (!paymentIntent || !ephemeralKey || !customer) {
+        throw new Error("Missing required Stripe data from server");
+      } else {
+        // Navigate to PaymentScreen with Stripe data as props
+        Toast.show({
+          type: "success",
+          text1: "Order Placed",
+          text2: "Order placed successfully",
+          position: "bottom",
+          visibilityTime: 2000,
+        });
+        router.push({
+          pathname: "/(tabs)/payment",
+          params: {
+            paymentIntent,
+            ephemeralKey,
+            customer,
+            orderId: data.id, // Pass supabase order ID for potential updates
+            total: total,
+          },
+        });
+        clearCart();
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Order Failed",
+        text2: "Failed to place order",
+        position: "bottom",
+        visibilityTime: 2000,
+      });
+      console.log("Error placing order:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <MainLayout>
       {items?.length > 0 ? (
